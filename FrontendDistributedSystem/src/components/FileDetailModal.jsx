@@ -11,16 +11,16 @@ const FileDetailsModal = ({ show, onClose, file }) => {
       </Modal.Header>
       <Modal.Body>
         <p>
-          <strong>Filename:</strong> {file.name}
+          <strong>Filename:</strong> {file.filename}
         </p>
         <p>
-          <strong>File Type:</strong> {file.type}
+          <strong>File Type:</strong> {file?.type}
         </p>
         <p>
-          <strong>File Size:</strong> {file.size} MB
+          <strong>File Size:</strong> {file.fileSize} MB
         </p>
         <p>
-          <strong>Uploaded On:</strong> {file.uploadDate}
+          <strong>Uploaded At:</strong> {file.createdAt}
         </p>
       </Modal.Body>
       <Modal.Footer>

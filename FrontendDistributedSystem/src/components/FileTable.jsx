@@ -28,7 +28,7 @@ const FileTable = ({ files, onDownload, onDelete }) => {
           {files && files?.length > 0 ? (
             files.map((file, index) => (
               <tr key={index}>
-                <td>{file.name}</td>
+                <td>{file.filename}</td>
                 <td>
                   <button
                     className="btn btn-success"

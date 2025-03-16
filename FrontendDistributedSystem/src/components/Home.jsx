@@ -19,10 +19,10 @@ function Home() {
 
   useEffect(() => {
     const fetchFiles = async () => {
-      const response = await axios.get(
+      const { data } = await axios.get(
         `http://localhost:8080/files/file-metadata/${userInfo.id}`
       );
-      console.log(response);
+      setFiles(data);
     };
 
     fetchFiles();
