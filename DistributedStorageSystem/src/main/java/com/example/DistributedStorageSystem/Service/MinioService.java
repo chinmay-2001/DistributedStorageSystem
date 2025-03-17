@@ -1,15 +1,13 @@
 package com.example.DistributedStorageSystem.Service;
 
-import com.example.DistributedStorageSystem.Configuration.MiniConfig;
+import io.minio.GetObjectArgs;
+import io.minio.GetObjectResponse;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
-import kotlin.jvm.Throws;
-import org.apache.coyote.BadRequestException;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,4 +48,12 @@ public class MinioService {
         }
     }
 
+    public GetObjectResponse getObject(String objectName) throws Exception {
+        return minioClient.getObject(
+                GetObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(objectName)
+                        .build()
+        );
+    }
 }

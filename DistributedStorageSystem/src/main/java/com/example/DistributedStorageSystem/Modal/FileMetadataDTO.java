@@ -21,8 +21,18 @@ public class FileMetadataDTO {
     }
 
     private String filename;
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
+    }
+
     private int totalchunk;
     private int fileSize;
+    private String fileType;
 
     public int getUserId() {
         return userId;

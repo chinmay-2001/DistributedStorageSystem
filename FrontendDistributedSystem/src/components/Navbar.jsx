@@ -4,7 +4,7 @@ import axios from "axios";
 import AppContext from "../Context/Context";
 import FileUploader from "./FileUpoader";
 
-const NavbarComponent = () => {
+const NavbarComponent = ({ setFiles, files }) => {
   const [isLogIn, setIsLogIn] = useState(false);
   const { isLoggedIn } = useContext(AppContext);
   const handleAuth = () => {
@@ -12,7 +12,6 @@ const NavbarComponent = () => {
   };
 
   useEffect(() => {
-    console.log;
     setIsLogIn(isLoggedIn);
   }, []);
 
@@ -52,7 +51,7 @@ const NavbarComponent = () => {
           </ul>
 
           <div className="ml-auto">
-            <FileUploader />
+            <FileUploader setFiles={setFiles} files={files} />
           </div>
 
           <button className="btn btn-outline-light" onClick={handleAuth}>

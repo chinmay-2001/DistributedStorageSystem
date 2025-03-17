@@ -9,8 +9,31 @@ function Home() {
   const [files, setFiles] = useState([]);
   const { userInfo } = useContext(AppContext);
 
-  const handleDownload = (file) => {
-    alert(`Downloading: ${file.name}`);
+  const handleDownload = async (fileId, filetype) => {
+    const response = await fetch(
+      `http://localhost:8080/files/download-file/${fileId}/${filetype}`
+    );
+
+    const fileHandle = await window.showSaveFilePicker({
+      suggestedName: "downloaded-file" + "." + filetype,
+      types: [
+        {
+          description: filetype + "File",
+          accept: { [`application/${filetype}`]: ["." + filetype] },
+        },
+      ],
+    });
+
+    const writableStream = await fileHandle.createWritable();
+    const reader = response.body.getReader();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      await writableStream.write(value); // Directly write to disk (No RAM storage)
+    }
+
+    await writableStream.close();
   };
 
   const handleDelete = (file) => {
@@ -30,7 +53,7 @@ function Home() {
 
   return (
     <div className="home-container">
-      <NavbarComponent />
+      <NavbarComponent setFiles={setFiles} files={files} />
       <div className="content-box">
         <FileTable
           files={files}

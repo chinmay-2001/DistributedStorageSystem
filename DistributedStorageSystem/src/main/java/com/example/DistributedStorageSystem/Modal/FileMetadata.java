@@ -44,16 +44,27 @@ public class FileMetadata {
     @Column(nullable = false,updatable = false)
     private LocalDateTime createdAt= LocalDateTime.now();
 
+    @Column(nullable = false)
+    private String filetype;
+
+    @Column
+    private  LocalDateTime updatedAt=LocalDateTime.now();
+
     public AppUser getAppUser() {
         return appUser;
+    }
+
+    public String getFiletype() {
+        return filetype;
+    }
+
+    public void setFiletype(String filetype) {
+        this.filetype = filetype;
     }
 
     public void setAppUser(AppUser appUser) {
         this.appUser = appUser;
     }
-
-    @Column
-    private  LocalDateTime updatedAt=LocalDateTime.now();
 
     @PreUpdate
     protected  void onUpdate(){

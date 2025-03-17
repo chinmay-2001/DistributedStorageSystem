@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import axios from "axios";
 import AppContext from "../Context/Context";
 
-function FileUploader() {
+function FileUploader({ setFiles, files }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const CHUNK_SIZE = 5 * 1024 * 1024; // 10MB
   const MAX_RETRIES = 1;
@@ -13,8 +13,6 @@ function FileUploader() {
   } = useContext(AppContext);
 
   const handleFileChange = async (event) => {
-    // setSelectedFile(event.target.files[0]);
-
     if (event.target.files[0]) {
       await uploadFile(event.target.files[0]);
     }
@@ -34,6 +32,7 @@ function FileUploader() {
         },
         withCredentials: true,
       });
+
       console.log(`✅ Chunk ${chunkIndex} uploaded successfully`);
       return true;
     } catch (error) {
@@ -59,14 +58,13 @@ function FileUploader() {
     console.log(file);
     const fileSize = file.size;
     const totalChunks = Math.ceil(fileSize / CHUNK_SIZE);
-    const {
-      data: { id: fileId },
-    } = await axios.post(
+    const { data: newFile } = await axios.post(
       "http://localhost:8080/files/FileMetadata",
       {
         userId: id,
         filename: file.name,
         totalchunk: totalChunks,
+        fileType: file.type.split("/")[1],
         fileSize,
       },
       {
@@ -77,6 +75,9 @@ function FileUploader() {
         withCredentials: true,
       }
     );
+    const fileId = newFile.id;
+    setFiles([...files, newFile]);
+
     if (fileId) {
       while (start <= file.size) {
         chunks.push(file.slice(start, start + CHUNK_SIZE));
@@ -94,7 +95,6 @@ function FileUploader() {
             (_, i) => index + i
           );
           index += CONCURRENCY_LIMIT;
-          console.log("index", index);
           const results = await Promise.all(
             batch.map((chunk, index) =>
               uploadChunk(chunk, chunkIndexes[index], fileId)
@@ -128,6 +128,10 @@ function FileUploader() {
   const handleUploadClick = () => {
     document.getElementById("fileInput").click();
   };
+
+  // const extractFiletype(string file){
+
+  // }
 
   return (
     <div className="file-uploader">

@@ -32,7 +32,7 @@ const FileTable = ({ files, onDownload, onDelete }) => {
                 <td>
                   <button
                     className="btn btn-success"
-                    onClick={() => onDownload(file)}
+                    onClick={() => onDownload(file.id, file.filetype)}
                   >
                     Download
                   </button>

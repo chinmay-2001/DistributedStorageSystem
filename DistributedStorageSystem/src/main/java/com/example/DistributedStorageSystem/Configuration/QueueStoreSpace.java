@@ -72,16 +72,18 @@ public class QueueStoreSpace<T> implements StoreSpace<T> {
             if (closed) {
                 throw new StoreException("Store is closed",new Throwable());
             }
+            System.out.println(1);
             String chunkKey=fileId+Integer.toString(chunkIndex);
             CompletableFuture<ChunkResponse> future = new CompletableFuture<>();
 
+            System.out.println(2);
             queue.put((T) new ChunkData(item,chunkKey,fileId,fileSize,chunkIndex));
 
             chunkFuture.put(chunkKey,future);
+            System.out.println(3);
 
             return future;
         } catch (StoreException e) {
-            System.out.println("Error While pushing into queue"+e.getMessage());
             throw e;
         } catch (Exception e) {
             throw new StoreException("Unable to add item in the queue", e);
@@ -90,7 +92,6 @@ public class QueueStoreSpace<T> implements StoreSpace<T> {
 
     @Override
     public T take() throws StoreException {
-        System.out.println(3);
         try {
             if (closed) {
                 throw new StoreException("Store is closed",new Throwable());
@@ -165,7 +166,6 @@ public class QueueStoreSpace<T> implements StoreSpace<T> {
 
 
                 System.out.println(Thread.currentThread().getName() + " - Success: " + item);
-                return;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } catch (Exception e){

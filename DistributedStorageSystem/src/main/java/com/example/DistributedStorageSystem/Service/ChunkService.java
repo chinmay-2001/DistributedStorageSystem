@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -38,6 +39,10 @@ public class ChunkService {
             System.out.println("GetMessage:"+s.getMessage());
             throw new RuntimeException(s.getMessage());
         }
+    }
+
+    public List<String> downloadFile(UUID fileId) {
+        return chunkRepo.getChunkUrls(fileId);
     }
 }
 

@@ -14,7 +14,7 @@ const FileDetailsModal = ({ show, onClose, file }) => {
           <strong>Filename:</strong> {file.filename}
         </p>
         <p>
-          <strong>File Type:</strong> {file?.type}
+          <strong>File Type:</strong> {file.filetype}
         </p>
         <p>
           <strong>File Size:</strong> {file.fileSize} MB
