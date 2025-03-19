@@ -1,5 +1,8 @@
 package com.example.DistributedStorageSystem.Configuration;
 
+import com.example.DistributedStorageSystem.Exception.ChunkProcessingException;
+import com.example.DistributedStorageSystem.Modal.ChunkData;
+import com.example.DistributedStorageSystem.Modal.ChunkResponse;
 import com.example.DistributedStorageSystem.Service.ChunkProcessingService;
 
 import com.example.DistributedStorageSystem.Service.MinioService;
@@ -67,7 +70,7 @@ public class QueueStoreSpace<T> implements StoreSpace<T> {
     }
 
     @Override
-    public CompletableFuture<ChunkResponse> put(T item,String fileId,Integer chunkIndex,Integer fileSize) throws StoreException {
+    public CompletableFuture<ChunkResponse> put(T item, String fileId, Integer chunkIndex, Integer fileSize) throws StoreException {
         try {
 
             String chunkKey=fileId+Integer.toString(chunkIndex);
@@ -142,100 +145,57 @@ public class QueueStoreSpace<T> implements StoreSpace<T> {
         while (!closed) {
             try {
                 ChunkData chunkData = (ChunkData) take();
-                String chunkkey = chunkData.chunkKey;
-                T item = (T) chunkData.file;
-                String fileId=chunkData.fileId;
-                Integer chunkIndex=chunkData.chunkIndex;
-                Integer  chunkSize=chunkData.chunkSize;
-
-
-                String chunkUrl = minioService.uploadFile((File) item,chunkkey);
-
-                // store  the chunkUrl in the store
-                this.chunkProcessorService.saveChunk(fileId,chunkUrl,chunkIndex,chunkSize);
-
-                CompletableFuture<ChunkResponse> future = chunkFuture.remove(chunkkey);
-                if (future != null) {
-                    future.complete(new ChunkResponse(chunkkey, chunkUrl, null));
-                }
-
-
-                System.out.println(Thread.currentThread().getName() + " - Success: " + item);
+                processChunk(chunkData);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } catch (Exception e){
-                if(e.getMessage()!=null){
-                    String chunkKey="UNKNOWN";
-                    if(e instanceof ChunkProcessingException){
-                        chunkKey=((ChunkProcessingException) e).getChunkKey();
-                    }
-
-                    CompletableFuture<ChunkResponse> future =chunkFuture.remove(chunkKey);
-
-
-                    if(future!=null){
-                        future.complete(new ChunkResponse(chunkKey,null,e.getMessage()));
-                    }
-                }
+              handleExceptionProcessing(e);
             }
         }
     }
 
-    private static class ChunkData<T> {
-        T file;
-        String chunkKey;
-        String fileId;
-        Integer chunkSize;
-        Integer chunkIndex;
+    public void processChunk(ChunkData chunkData) throws Exception {
+        String chunkkey = chunkData.getChunkKey();
+        T item = (T) chunkData.getFile();
+        String fileId=chunkData.getFileId();
+        Integer chunkIndex=chunkData.getChunkIndex();
+        Integer  chunkSize=chunkData.getChunkSize();
 
-        public ChunkData(T file, String chunkKey, String fileId, Integer chunkSize, Integer chunkIndex) {
-            this.file = file;
-            this.chunkKey = chunkKey;
-            this.fileId = fileId;
-            this.chunkSize = chunkSize;
-            this.chunkIndex = chunkIndex;
+        String chunkUrl=uploadChunkToMinio(item,chunkkey);
+        saveChunkMetadata(fileId,chunkUrl,chunkIndex,chunkSize);
+
+        CompletableFuture<ChunkResponse> future = chunkFuture.remove(chunkkey);
+        if(future!=null){
+            future.complete(new ChunkResponse( true,null));
         }
     }
 
-
-    public static class ChunkResponse {
-        private final String chunkKey;
-        private final String chunkUrl;
-        private final String error;
-
-        public ChunkResponse(String chunkKey, String chunkUrl, String error) {
-            this.chunkKey = chunkKey;
-            this.chunkUrl = chunkUrl;
-            this.error = error;
-        }
-
-        public String getChunkKey() {
-            return chunkKey;
-        }
-
-        public String getChunkUrl() {
-            return chunkUrl;
-        }
-
-        public String getError() {
-            return error;
-        }
-
-        public boolean isSuccess() {
-            return error == null;
-        }
+    private void saveChunkMetadata(String fileId, String chunkUrl, Integer chunkIndex, Integer chunkSize) throws ChunkProcessingException {
+        this.chunkProcessorService.saveChunk(fileId,chunkUrl,chunkIndex,chunkSize);
     }
 
-    public static class ChunkProcessingException extends Exception{
-        private final String chunkKey;
+    public  String uploadChunkToMinio(T item,String chunkkey) throws Exception {
+       String chunkUrl= minioService.uploadFile((File) item,chunkkey);
+       if(chunkUrl==null){
+           throw new ChunkProcessingException(chunkkey,"Failed to upload Chunk to Minio");
+       }
+       return chunkUrl;
+    }
 
-        public ChunkProcessingException(String chunkKey,String message){
-            super(message);
-            this.chunkKey=chunkKey;
-        }
 
-        public  String getChunkKey(){
-            return chunkKey;
+    void handleExceptionProcessing(Exception e){
+        if(e.getMessage()!=null){
+            String chunkKey="UNKNOWN";
+            if(e instanceof ChunkProcessingException){
+                chunkKey=((ChunkProcessingException) e).getChunkKey();
+            }
+
+            CompletableFuture<ChunkResponse> future =chunkFuture.remove(chunkKey);
+
+
+            if(future!=null){
+                future.completeExceptionally(e);
+            }
         }
     }
 }
