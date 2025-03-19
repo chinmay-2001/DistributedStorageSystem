@@ -69,18 +69,13 @@ public class QueueStoreSpace<T> implements StoreSpace<T> {
     @Override
     public CompletableFuture<ChunkResponse> put(T item,String fileId,Integer chunkIndex,Integer fileSize) throws StoreException {
         try {
-            if (closed) {
-                throw new StoreException("Store is closed",new Throwable());
-            }
-            System.out.println(1);
+
             String chunkKey=fileId+Integer.toString(chunkIndex);
             CompletableFuture<ChunkResponse> future = new CompletableFuture<>();
 
-            System.out.println(2);
             queue.put((T) new ChunkData(item,chunkKey,fileId,fileSize,chunkIndex));
 
             chunkFuture.put(chunkKey,future);
-            System.out.println(3);
 
             return future;
         } catch (StoreException e) {

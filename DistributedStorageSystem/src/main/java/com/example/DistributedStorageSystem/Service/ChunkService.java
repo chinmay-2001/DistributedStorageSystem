@@ -32,11 +32,10 @@ public class ChunkService {
     FileMetadataRepo fileMetadataRepo;
 
     @Async
-    public CompletableFuture<QueueStoreSpace.ChunkResponse> uploadChunk(File file, String fileId,int chunkIndex) throws Exception {
+    public CompletableFuture<?> uploadChunk(File file, String fileId,int chunkIndex) throws Exception {
         try {
             return queueStoreSpace.put(file,fileId,chunkIndex,(int)file.length());
         }catch (StoreException s){
-            System.out.println("GetMessage:"+s.getMessage());
             throw new RuntimeException(s.getMessage());
         }
     }

@@ -1,5 +1,6 @@
 package com.example.DistributedStorageSystem.Configuration;
 
+import com.example.DistributedStorageSystem.Modal.ChunkResponse;
 import org.bouncycastle.util.StoreException;
 
 import java.util.concurrent.CompletableFuture;
@@ -12,7 +13,7 @@ public interface StoreSpace<T> {
             * @throws StoreException If an error occurs while adding.
      */
 
-    CompletableFuture<QueueStoreSpace.ChunkResponse> put(T item, String fileId, Integer chunkIndex,Integer fileSize) throws StoreException;
+    CompletableFuture<ChunkResponse> put(T item, String fileId, Integer chunkIndex, Integer fileSize) throws StoreException;
 
     T take()  throws StoreException;
 

@@ -23,21 +23,13 @@ public class UserController {
     public ResponseEntity<?> login(@RequestBody Map<String, String> requestBody ){
         String email = requestBody.get("email");
         String password = requestBody.get("password");
-        try {
-            AppUser appUser=userService.verifyUser(email, password);
-            return new ResponseEntity<>(appUser, HttpStatus.OK);
-        }catch(Exception e){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+        AppUser appUser=userService.verifyUser(email, password);
+        return new ResponseEntity<>(appUser, HttpStatus.OK);
+}
 
     @RequestMapping("/signUp")
     public ResponseEntity<?> signup(@RequestBody AppUser appUsers) {
-        try {
-            AppUser appUser = userService.createUser(appUsers);
-            return new ResponseEntity<>(appUser, HttpStatus.OK);
-        }catch (Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        AppUser appUser = userService.createUser(appUsers);
+        return new ResponseEntity<>(appUser, HttpStatus.OK);
     }
 }
