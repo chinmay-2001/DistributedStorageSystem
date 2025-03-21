@@ -7,6 +7,7 @@ import Login from "./components/Login";
 import { Signup } from "./components/Signup";
 import Home from "./components/Home";
 import { Navigate, Outlet } from "react-router-dom";
+import OverlayComponent from "./components/OverlayComponent";
 
 function App() {
   const ProtectedRoutes = () => {
@@ -25,6 +26,7 @@ function App() {
             <Route path="/" element={<Home />} />
           </Route>
         </Routes>
+        <OverlayComponent />
       </BrowserRouter>
     </AppProvider>
   );

@@ -2,14 +2,23 @@ import React, { useState } from "react";
 import { Modal, Button } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import FileDetailsModal from "./FileDetailModal";
+import { downloadFileWithProgress } from "../Utils.js/Download";
 
-const FileTable = ({ files, onDownload, onDelete }) => {
+const FileTable = ({ files, onDelete }) => {
   const [showModal, setShowModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
 
   const handleDetails = (file) => {
     setSelectedFile(file);
     setShowModal(true);
+  };
+
+  const onDownload = async (fileId, filetype, filename, filesize) => {
+    try {
+      await downloadFileWithProgress(fileId, filename, filetype, filesize);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -32,7 +41,14 @@ const FileTable = ({ files, onDownload, onDelete }) => {
                 <td>
                   <button
                     className="btn btn-success"
-                    onClick={() => onDownload(file.id, file.filetype)}
+                    onClick={() =>
+                      onDownload(
+                        file.id,
+                        file.filetype,
+                        file.filename,
+                        file.filesize
+                      )
+                    }
                   >
                     Download
                   </button>

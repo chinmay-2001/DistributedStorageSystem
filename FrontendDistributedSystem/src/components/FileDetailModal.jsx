@@ -17,7 +17,7 @@ const FileDetailsModal = ({ show, onClose, file }) => {
           <strong>File Type:</strong> {file.filetype}
         </p>
         <p>
-          <strong>File Size:</strong> {file.fileSize} MB
+          <strong>File Size:</strong> {formatFileSize(file.fileSize)}
         </p>
         <p>
           <strong>Uploaded At:</strong> {file.createdAt}
@@ -30,6 +30,13 @@ const FileDetailsModal = ({ show, onClose, file }) => {
       </Modal.Footer>
     </Modal>
   );
+};
+
+const formatFileSize = (bytes) => {
+  if (bytes < 1024) return bytes + " B";
+  else if (bytes < 1048576) return (bytes / 1024).toFixed(2) + " KB";
+  else if (bytes < 1073741824) return (bytes / 1048576).toFixed(2) + " MB";
+  else return (bytes / 1073741824).toFixed(2) + " GB";
 };
 
 export default FileDetailsModal;

@@ -1,6 +1,8 @@
 import React, { useState, useContext } from "react";
 import axios from "axios";
 import AppContext from "../Context/Context";
+import { FileOperationService } from "../APIServices/FileOperationService";
+import { FileMetadataService } from "../APIServices/FileApiServices";
 
 function FileUploader({ setFiles, files }) {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -19,19 +21,8 @@ function FileUploader({ setFiles, files }) {
   };
 
   const uploadChunk = async (chunk, chunkIndex, fileId, attempt = 1) => {
-    const formData = new FormData();
-    formData.append("file", chunk, `chunk-${chunkIndex}`);
-    formData.append("fileId", fileId);
-    formData.append("chunkIndex", chunkIndex);
-
     try {
-      await axios.post("http://localhost:8080/files/chunk-upload", formData, {
-        auth: {
-          username: "admin",
-          password: "admin123",
-        },
-        withCredentials: true,
-      });
+      await FileOperationService.uploadFile({ fileId, chunkIndex, chunk });
 
       console.log(`✅ Chunk ${chunkIndex} uploaded successfully`);
       return true;
@@ -41,6 +32,7 @@ function FileUploader({ setFiles, files }) {
         const delay = Math.pow(2, attempt - 1) * 1000; // Exponential backoff delay
         console.log(`Retrying chunk ${chunkIndex} in ${delay / 1000}s...`);
         await new Promise((res) => setTimeout(res, delay));
+
         return uploadChunk(chunk, chunkIndex, fileId, attempt + 1);
       } else {
         console.error(
@@ -58,23 +50,15 @@ function FileUploader({ setFiles, files }) {
     console.log(file);
     const fileSize = file.size;
     const totalChunks = Math.ceil(fileSize / CHUNK_SIZE);
-    const { data: newFile } = await axios.post(
-      "http://localhost:8080/files/FileMetadata",
-      {
-        userId: id,
-        filename: file.name,
-        totalchunk: totalChunks,
-        fileType: file.type.split("/")[1],
-        fileSize,
-      },
-      {
-        auth: {
-          username: "admin",
-          password: "admin123",
-        },
-        withCredentials: true,
-      }
-    );
+
+    const metadata = {
+      userId: id,
+      filename: file.name,
+      totalchunk: totalChunks,
+      fileType: file.type.split("/")[1],
+      fileSize,
+    };
+    const newFile = await FileMetadataService.createFileMetadata(metadata);
     const fileId = newFile.id;
     setFiles([...files, newFile]);
 
@@ -110,17 +94,7 @@ function FileUploader({ setFiles, files }) {
       await uploadNextBatch();
 
       if (failedChunks.length == 0) {
-        await axios.patch(
-          `http://localhost:8080/files/confirm-upload/${fileId}`,
-          {},
-          {
-            auth: {
-              username: "admin",
-              password: "admin123",
-            },
-            withCredentials: true,
-          }
-        );
+        await FileOperationService.conformUpload(fileId);
       }
     }
   };
@@ -128,10 +102,6 @@ function FileUploader({ setFiles, files }) {
   const handleUploadClick = () => {
     document.getElementById("fileInput").click();
   };
-
-  // const extractFiletype(string file){
-
-  // }
 
   return (
     <div className="file-uploader">
