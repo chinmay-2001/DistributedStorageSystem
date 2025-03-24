@@ -8,6 +8,7 @@ import com.example.DistributedStorageSystem.Modal.FileMetadataDTO;
 import com.example.DistributedStorageSystem.Service.ChunkService;
 import com.example.DistributedStorageSystem.Service.FileService;
 import com.example.DistributedStorageSystem.Service.MinioService;
+import com.example.DistributedStorageSystem.Utils.ContentTypeUtils;
 import com.example.DistributedStorageSystem.Utils.ConvertMultiPartToFile;
 import com.example.DistributedStorageSystem.Utils.ExtractObjectNameFromUrl;
 import com.example.DistributedStorageSystem.Utils.MimetypeUtil;
@@ -85,8 +86,8 @@ public class FileController {
             throw new ResourceNotFoundException("File not found");
         }
         String contentType=MimetypeUtil.getMimeType(fileType);
-
-
+        System.out.println("ContentType:"+contentType);
+        fileType= ContentTypeUtils.getFileType(fileType);
 
         StreamingResponseBody streamingResponseBody= outputStream -> {
             for (String chunkurl:chunkUrls){

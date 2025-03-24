@@ -14,6 +14,7 @@ public class MimetypeUtil {
         MIME_TYPE_MAP.put("png", "image/png");
         MIME_TYPE_MAP.put("jpg", "image/jpeg");
         MIME_TYPE_MAP.put("txt", "text/plain");
+        MIME_TYPE_MAP.put("x-msdownload","application/x-msdownload");
     }
 
     public static String getMimeType(String fileExtension) {
