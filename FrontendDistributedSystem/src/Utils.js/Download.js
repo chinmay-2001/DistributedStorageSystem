@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { fileTypeConvertion } from "../constants";
 
 export const useDownloadStore = create((set) => ({
   downloads: {},
@@ -52,6 +53,14 @@ export const useDownloadStore = create((set) => ({
   maximiazeOverlay: () => set({ isOverlayVisible: true }),
 }));
 
+const getFiletype = (fileType) => {
+  if (fileTypeConvertion.hasOwnProperty(fileType)) {
+    return fileTypeConvertion[fileType];
+  } else {
+    return fileType;
+  }
+};
+
 export const downloadFileWithProgress = async (
   fileId,
   filename,
@@ -65,8 +74,9 @@ export const downloadFileWithProgress = async (
       `http://localhost:8080/files/download-file/${fileId}/${filetype}`
     );
 
+    filetype = getFiletype(filetype);
     const fileHandle = await window.showSaveFilePicker({
-      suggestedName: "downloaded-file" + "." + filetype,
+      suggestedName: filename + "." + filetype,
       types: [
         {
           description: filetype + "File",

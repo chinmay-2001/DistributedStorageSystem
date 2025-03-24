@@ -3,8 +3,11 @@ import axios from "axios";
 import AppContext from "../Context/Context";
 import { FileOperationService } from "../APIServices/FileOperationService";
 import { FileMetadataService } from "../APIServices/FileApiServices";
+import { useDownloadStore } from "../Utils.js/Download";
 
 function FileUploader({ setFiles, files }) {
+  const { startDownload, updateProgress, setStatus, removeDownload } =
+    useDownloadStore();
   const [selectedFile, setSelectedFile] = useState(null);
   const CHUNK_SIZE = 5 * 1024 * 1024; // 10MB
   const MAX_RETRIES = 1;
@@ -50,12 +53,12 @@ function FileUploader({ setFiles, files }) {
     console.log(file);
     const fileSize = file.size;
     const totalChunks = Math.ceil(fileSize / CHUNK_SIZE);
-
+    const filetype = file.type.split("/")[1];
     const metadata = {
       userId: id,
-      filename: file.name,
+      filename: file?.name || "",
       totalchunk: totalChunks,
-      fileType: file.type.split("/")[1],
+      fileType: filetype,
       fileSize,
     };
     const newFile = await FileMetadataService.createFileMetadata(metadata);
@@ -63,6 +66,7 @@ function FileUploader({ setFiles, files }) {
     setFiles([...files, newFile]);
 
     if (fileId) {
+      startDownload(fileId, file.filename, filetype);
       while (start <= file.size) {
         chunks.push(file.slice(start, start + CHUNK_SIZE));
         start += CHUNK_SIZE;
@@ -72,7 +76,7 @@ function FileUploader({ setFiles, files }) {
       let failedChunks = [];
 
       const uploadNextBatch = async () => {
-        while (index <= chunks.length) {
+        while (index <= totalChunks) {
           const batch = chunks.slice(index, index + CONCURRENCY_LIMIT);
           const chunkIndexes = Array.from(
             { length: batch.length },
@@ -84,9 +88,19 @@ function FileUploader({ setFiles, files }) {
               uploadChunk(chunk, chunkIndexes[index], fileId)
             )
           );
-
+          console.log("totalChunks:", totalChunks);
+          let updatedChunk = 0;
           results.forEach((success, i) => {
-            if (!success) failedChunks.push(chunkIndexes[i]);
+            if (!success) {
+              failedChunks.push(chunkIndexes[i]);
+            } else {
+              updatedChunk += 1;
+              const progressPresent = Math.round(
+                (updatedChunk / totalChunks) * 100
+              );
+              console.log("updatedChunk:", updatedChunk);
+              updateProgress(fileId, progressPresent);
+            }
           });
         }
       };
@@ -94,8 +108,13 @@ function FileUploader({ setFiles, files }) {
       await uploadNextBatch();
 
       if (failedChunks.length == 0) {
+        setStatus(fileId, "complete");
         await FileOperationService.conformUpload(fileId);
+      } else {
+        setStatus(fileId, "failed");
       }
+
+      // removeDownload(file);
     }
   };
 

@@ -46,7 +46,7 @@ const FileTable = ({ files, onDelete }) => {
                         file.id,
                         file.filetype,
                         file.filename,
-                        file.filesize
+                        file.fileSize
                       )
                     }
                   >
