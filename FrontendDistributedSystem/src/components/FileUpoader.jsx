@@ -74,7 +74,7 @@ function FileUploader({ setFiles, files }) {
 
       let index = 0;
       let failedChunks = [];
-
+      let updatedChunk = 0;
       const uploadNextBatch = async () => {
         while (index <= totalChunks) {
           const batch = chunks.slice(index, index + CONCURRENCY_LIMIT);
@@ -89,7 +89,7 @@ function FileUploader({ setFiles, files }) {
             )
           );
           console.log("totalChunks:", totalChunks);
-          let updatedChunk = 0;
+
           results.forEach((success, i) => {
             if (!success) {
               failedChunks.push(chunkIndexes[i]);
