@@ -27,20 +27,15 @@ function FileUploader({ setFiles, files }) {
     try {
       await FileOperationService.uploadFile({ fileId, chunkIndex, chunk });
 
-      console.log(`✅ Chunk ${chunkIndex} uploaded successfully`);
       return true;
     } catch (error) {
       console.warn(`⚠️ Chunk ${chunkIndex} failed (Attempt ${attempt})`, error);
       if (attempt < MAX_RETRIES) {
         const delay = Math.pow(2, attempt - 1) * 1000; // Exponential backoff delay
-        console.log(`Retrying chunk ${chunkIndex} in ${delay / 1000}s...`);
         await new Promise((res) => setTimeout(res, delay));
 
         return uploadChunk(chunk, chunkIndex, fileId, attempt + 1);
       } else {
-        console.error(
-          `❌ Chunk ${chunkIndex} failed after ${MAX_RETRIES} attempts.`
-        );
         return false;
       }
     }
@@ -88,7 +83,6 @@ function FileUploader({ setFiles, files }) {
               uploadChunk(chunk, chunkIndexes[index], fileId)
             )
           );
-          console.log("totalChunks:", totalChunks);
 
           results.forEach((success, i) => {
             if (!success) {
@@ -98,7 +92,6 @@ function FileUploader({ setFiles, files }) {
               const progressPresent = Math.round(
                 (updatedChunk / totalChunks) * 100
               );
-              console.log("updatedChunk:", updatedChunk);
               updateProgress(fileId, progressPresent);
             }
           });
