@@ -32,10 +32,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidKeyException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import static org.springframework.web.servlet.function.RequestPredicates.contentType;
@@ -69,6 +66,7 @@ public class FileController {
             , @RequestParam("fileId")String fileId
             , @RequestParam("chunkIndex") int chunkIndex) throws Exception {
 
+
             File newFile=ConvertMultiPartToFile.convertMultipartFileToFile(file);
             return chunkService.uploadChunk(newFile, fileId,chunkIndex)
                     .thenApply(ResponseEntity::ok);
@@ -80,37 +78,39 @@ public class FileController {
     }
 
     @GetMapping("/download-file/{fileId}/{fileType}")
-    public ResponseEntity<StreamingResponseBody> downloadFile(@PathVariable UUID fileId, @PathVariable String fileType) {
+    public ResponseEntity<?> downloadFile(@PathVariable UUID fileId, @PathVariable String fileType) throws Exception {
         List<String> chunkUrls=chunkService.downloadFile(fileId);
         if(chunkUrls.isEmpty()){
             throw new ResourceNotFoundException("File not found");
         }
-        String contentType=MimetypeUtil.getMimeType(fileType);
-        System.out.println("ContentType:"+contentType);
-        fileType= ContentTypeUtils.getFileType(fileType);
 
-        StreamingResponseBody streamingResponseBody= outputStream -> {
-            for (String chunkurl:chunkUrls){
-                String objectName=ExtractObjectNameFromUrl.extractObjectNameFromUrl(chunkurl);
-
-                try(GetObjectResponse getObjectResponse =minioService.getObject(objectName)) {
-                    System.out.println(getObjectResponse);
-                    byte[] buffer = new byte[8192];
-                    int bytesRead;
-                    while ((bytesRead = getObjectResponse.read(buffer)) != -1) {
-                        outputStream.write(buffer, 0, bytesRead);
-                        outputStream.flush();
-                    }
-                }catch (Exception e){
-                    throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Error Retreiving Files");
-                }
-            }
-        };
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"downloaded-file."+fileType+"\"")
-                .contentType(MediaType.parseMediaType(contentType))
-                .body(streamingResponseBody);
+        ArrayList<String> presignedUrls =chunkService.generatePresignedUrls(chunkUrls);
+        return new ResponseEntity<>(presignedUrls,HttpStatus.OK);
+//        String contentType=MimetypeUtil.getMimeType(fileType);
+//        System.out.println("ContentType:"+contentType);
+//        fileType= ContentTypeUtils.getFileType(fileType);
+//
+//        StreamingResponseBody streamingResponseBody= outputStream -> {
+//            for (String chunkurl:chunkUrls){
+//                String objectName=ExtractObjectNameFromUrl.extractObjectNameFromUrl(chunkurl);
+//
+//                try(GetObjectResponse getObjectResponse =minioService.getObject(objectName)) {
+//                    System.out.println(getObjectResponse);
+//                    byte[] buffer = new byte[65536];
+//                    int bytesRead;
+//                    while ((bytesRead = getObjectResponse.read(buffer)) != -1) {
+//                        outputStream.write(buffer, 0, bytesRead);
+//                        outputStream.flush();
+//                    }
+//                }catch (Exception e){
+//                    throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Error Retreiving Files");
+//                }
+//            }
+//        };
+//        return ResponseEntity.ok()
+//                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"downloaded-file."+fileType+"\"")
+//                .contentType(MediaType.parseMediaType(contentType))
+//                .body(streamingResponseBody);
 
     }
-
 }

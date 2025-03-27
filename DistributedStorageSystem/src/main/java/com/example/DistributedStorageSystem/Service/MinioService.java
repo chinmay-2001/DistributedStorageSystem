@@ -1,9 +1,9 @@
 package com.example.DistributedStorageSystem.Service;
 
-import io.minio.GetObjectArgs;
-import io.minio.GetObjectResponse;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
+import com.example.DistributedStorageSystem.Utils.ExtractObjectNameFromUrl;
+import io.minio.*;
+import io.minio.errors.*;
+import io.minio.http.Method;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +11,11 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 @Service
 public class MinioService {
@@ -55,5 +58,18 @@ public class MinioService {
                         .object(objectName)
                         .build()
         );
+    }
+
+    public String generatePresignedUrl(String url) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        String Objectname=ExtractObjectNameFromUrl.extractObjectNameFromUrl(url);
+        return minioClient
+                .getPresignedObjectUrl(
+                        GetPresignedObjectUrlArgs.builder()
+                                .method(Method.GET)
+                                .bucket(bucketName)
+                                .object(Objectname)
+                                .expiry(600)
+                                .build()
+                );
     }
 }

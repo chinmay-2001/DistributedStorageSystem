@@ -6,6 +6,7 @@ import com.example.DistributedStorageSystem.Modal.FileChunk;
 import com.example.DistributedStorageSystem.Modal.FileMetadata;
 import com.example.DistributedStorageSystem.Repo.ChunkRepo;
 import com.example.DistributedStorageSystem.Repo.FileMetadataRepo;
+import io.minio.errors.*;
 import org.bouncycastle.util.StoreException;
 import org.hibernate.Internal;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,6 +36,9 @@ public class ChunkService {
     @Autowired
     FileMetadataRepo fileMetadataRepo;
 
+    @Autowired
+    MinioService minioService;
+
     @Async
     public CompletableFuture<?> uploadChunk(File file, String fileId,int chunkIndex) throws Exception {
         try {
@@ -42,6 +50,18 @@ public class ChunkService {
 
     public List<String> downloadFile(UUID fileId) {
         return chunkRepo.getChunkUrls(fileId);
+    }
+
+    public ArrayList<String> generatePresignedUrls(List<String> urls) throws Exception {
+        ArrayList<String> presignedUrl=new ArrayList<>();
+        for(String url:urls) {
+            try {
+                presignedUrl.add(minioService.generatePresignedUrl(url));
+            } catch (ServerException e) {
+                throw new RuntimeException("Error generating presigned URL for: " + url, e);
+            }
+        }
+        return presignedUrl;
     }
 }
 
