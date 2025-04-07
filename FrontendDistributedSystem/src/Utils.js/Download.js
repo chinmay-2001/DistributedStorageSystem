@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { fileTypeConvertion } from "../constants";
-import axios from "axios";
+import { FileOperationService } from "../APIServices/FileOperationService";
 
 export const useDownloadStore = create((set) => ({
   downloads: {},
@@ -71,9 +71,7 @@ export const downloadFileWithProgress = async (
   const downloadStore = useDownloadStore.getState();
   downloadStore.startDownload(fileId, filename, filetype);
   try {
-    const response = await axios.get(
-      `http://localhost:8080/files/download-file/${fileId}/${filetype}`
-    );
+    const response = await FileOperationService.downloadFile(fileId, filetype);
     const urls = response.data;
 
     if (!window.showSaveFilePicker) {
