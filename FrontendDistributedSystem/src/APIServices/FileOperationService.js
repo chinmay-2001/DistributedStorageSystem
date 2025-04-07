@@ -9,7 +9,7 @@ export const FileOperationService = {
    */
   downloadFile: async (fileId, filetype) => {
     try {
-      return await fetch(`${apiClient.defaults.baseURL}/${fileId}/${filetype}`);
+      return await fetch(`${apiClient.defaults.baseURL}${fileId}/${filetype}`);
     } catch (error) {
       console.error(`Failed to download File:${error.message}`);
     }
