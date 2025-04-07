@@ -27,4 +27,4 @@ const createApiClient = (baseURL = "http://localhost:8080") => {
   return client;
 };
 
-export const apiClient = createApiClient("http://65.0.105.158:8080");
+export const apiClient = createApiClient("https://distributedstorage.site/");
