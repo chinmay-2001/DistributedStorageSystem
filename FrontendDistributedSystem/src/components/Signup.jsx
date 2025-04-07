@@ -15,11 +15,14 @@ export function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await axios.post(`http://65.0.105.158:8080/api/signUp`, {
-      name,
-      email,
-      password,
-    });
+    const response = await axios.post(
+      `https://distributedstorage.site/api/signUp`,
+      {
+        name,
+        email,
+        password,
+      }
+    );
     if (response.data) {
       updateLoggedIn(true);
 
