@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -24,6 +25,9 @@ public class MinioService {
 
     @Value("${minio.bucket-name}")
     private String bucketName;
+
+    @Value("${minio.url}")
+    private String customeHost;
 
     private final Tika tika = new Tika();
 
@@ -62,7 +66,8 @@ public class MinioService {
 
     public String generatePresignedUrl(String url) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         String Objectname=ExtractObjectNameFromUrl.extractObjectNameFromUrl(url);
-        return minioClient
+
+        String presignedObjectUrl= minioClient
                 .getPresignedObjectUrl(
                         GetPresignedObjectUrlArgs.builder()
                                 .method(Method.GET)
@@ -71,5 +76,8 @@ public class MinioService {
                                 .expiry(600)
                                 .build()
                 );
+        URL parsedurl=new URL(presignedObjectUrl);
+        String modifiedurl=customeHost+ parsedurl.getFile();
+        return modifiedurl;
     }
 }
