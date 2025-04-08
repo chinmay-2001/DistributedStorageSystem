@@ -5,6 +5,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import AppContext from "../Context/Context";
+import { loginServie } from "../APIServices/loginApiService";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -14,13 +15,7 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await axios.post(
-      `https://distributedstorage.site/api/login`,
-      {
-        email,
-        password,
-      }
-    );
+    const response = await loginServie.login(email, password);
 
     if (response.data) {
       updateLoggedIn(true);
